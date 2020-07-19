@@ -31,12 +31,19 @@ I usually use Jupyter notebooks to develop my Python scripts. When I am done, I 
 (local) > scp -rp src/pm2-download-historical-prices/ pi@raspberrypi:/home/pi/Projects
 ```
 
+
+
 Log into the Raspberry Pi and change into the directory with the script:
 ```sh
 > cd Projects/pm2-download-historical-prices
 ```
 
-Make sure that the prerequisite Python libraries are installed:
+Install the development packages for libxml2 and libxslt:
+```sh
+> sudo apt-get install libxml2-dev libxslt-dev python-dev
+```
+
+Make sure that the prerequisite Python libraries are installed (consider using the `--user` option if you get user rights warnings during the normal installation):
 ```sh
 > pip3.7 install pg8000 pandas sqlalchemy yfinance investpy
 ```
