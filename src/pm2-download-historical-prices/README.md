@@ -43,7 +43,7 @@ Install the development packages for libxml2 and libxslt:
 > sudo apt-get install libxml2-dev libxslt-dev python-dev
 ```
 
-Make sure that the prerequisite Python libraries are installed:
+Make sure that the prerequisite Python libraries are installed (consider using the `--user` option if you get user rights warnings during the normal installation):
 ```sh
 > pip3.7 install pg8000 pandas sqlalchemy yfinance investpy
 ```
