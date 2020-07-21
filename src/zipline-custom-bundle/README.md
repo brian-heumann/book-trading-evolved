@@ -6,8 +6,10 @@
 
 
 ## Adding the bundle to Zipline      
-1. Copy the *.py files to the zipline directory, on Linux this is in `~/.zipline`. The name of the file is also the bundle's name.
+1. To ensure zipline can find and import the bundle's module, copy the *.py files to the zipline directory. If you used conda, the zipline directory is `~/anaconda3/envs/py35/lib/python3.5/site-packages/zipline/data/bundles`. (This has costed me a lot of time to figure out!)
+
+2. BUT the extension.py file is located in `~/.zipline`. (And this has costed me a lot of time to figure out, too!)
    
-2. Run the command
+3. Run the command
    ```
    > zipline ingest -b <bundle_name>

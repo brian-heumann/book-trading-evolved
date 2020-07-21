@@ -1,2 +1,2 @@
 #!/bin/bash
-cp *.py ~/.zipline/data/bundles/
+cp *.py ~/.zipline/

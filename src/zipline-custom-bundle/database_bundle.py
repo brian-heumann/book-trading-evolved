@@ -1,6 +1,10 @@
 import pandas as pd
-from os import listdir
+from sqlalchemy import create_engine
+from tqdm import tqdm  # Used for progress bar
 
+
+engine = create_engine(
+    "postgresql+pg8000://quotes:clue0QS-train@raspberrypi/quotes")
 
 universe = [
     {'isin': 'CA0585861085', 'symbol': 'PO0.F', 'name': "Ballard Power"},
@@ -13,8 +17,8 @@ universe = [
     {'isin': 'IE00BZ12WP82', 'symbol': 'LIN.F', 'name': "Linde"},
     {'isin': 'US2310211063', 'symbol': 'CUM.F', 'name': 'Cummins'},
     {'isin': 'FR0011742329', 'symbol': 'M6P.F', 'name': 'McPhy Energy S.A.'},
-    # { 'isin': 'US6541101050', 'name': 'Nikola Corporation','symbol': '8NI.F' },
-    {'isin': 'DE000A0HL8N9', 'name': '2G Energy',  'symbol': '2GB.DE'}
+    #{'isin': 'US6541101050', 'symbol': '8NI.F', 'name': 'Nikola Corporation'},
+    {'isin': 'DE000A0HL8N9', 'symbol': '2GB.DE', 'name': '2G Energy'}
 ]
 
 
@@ -24,25 +28,17 @@ meaning these arguments passed, as shown below.
 """
 
 
-def hydrogen_stock_data(environ,
-                        asset_db_writer,
-                        minute_bar_writer,
-                        daily_bar_writer,
-                        adjustment_writer,
-                        calendar,
-                        start_session,
-                        end_session,
-                        cache,
-                        show_progress,
-                        output_dir):
-
-    # Get list of files from path
-    # Slicing off the last part
-    # 'example.csv'[:-4] = 'example'
-    symbols = [asset['symbol'] for asset in universe]
-
-    if not symbols:
-        raise ValueError("No symbols found in universe.")
+def database_bundle(environ,
+                    asset_db_writer,
+                    minute_bar_writer,
+                    daily_bar_writer,
+                    adjustment_writer,
+                    calendar,
+                    start_session,
+                    end_session,
+                    cache,
+                    show_progress,
+                    output_dir):
 
     # Prepare an empty DataFrame for dividends
     divs = pd.DataFrame(columns=['sid',
@@ -73,7 +69,7 @@ def hydrogen_stock_data(environ,
 
     # Get data for all stocks and write to Zipline
     daily_bar_writer.write(
-        process_stocks(symbols, sessions, metadata, divs)
+        process_stocks(universe, sessions, metadata, divs)
     )
 
     # Write the metadata
@@ -91,17 +87,29 @@ and dividend data
 """
 
 
-def process_stocks(symbols, sessions, metadata, divs):
+def process_stocks(universe, sessions, metadata, divs):
     # Loop the stocks, setting a unique Security ID (SID)
-    for sid, asset in enumerate(universe):
 
-        symbol = asset['symbol']
+    sid = 0
+    for asset in tqdm(universe):
+        sid += 1
         isin = asset['isin']
+        symbol = asset['symbol']
 
-        print('Loading {}...'.format(symbol))
-        # Read the stock data from the database (with isin as the table name).
-        df = pd.read_sql(isin, engine, index_col='Date',
-                         parse_dates={'Date': '%Y-%m-%d'})
+        # Ask the database for the data
+        df = pd.read_sql(isin, engine, index_col='Date', parse_dates=[
+            {'Date': '%Y-%m-%d'}])
+        df.rename(columns={
+            'Date': 'date',
+            'Open': 'open',
+            'High': 'high',
+            'Low': 'low',
+            'Close': 'close',
+            'Volume': 'volume',
+            'Dividends': 'dividends',
+            'Stock Splits': 'split_ratio'
+        }, inplace=True, copy=False)
+        df.index.rename('date', inplace=True)
 
         # Check first and last date.
         start_date = df.index[0]
@@ -119,8 +127,8 @@ def process_stocks(symbols, sessions, metadata, divs):
         # The auto_close date is the day after the last trade.
         ac_date = end_date + pd.Timedelta(days=1)
 
-        # Add a row to the metadata DataFrame. Don't forget to add an exchange field.
-        metadata.loc[sid] = start_date, end_date, ac_date, symbol, "FRA"
+        # Add a row to the metadata DataFrame.
+        metadata.loc[sid] = start_date, end_date, ac_date, symbol, 'NYSE'
 
         # If there's dividend data, add that to the dividend DataFrame
         if 'dividend' in df.columns:
