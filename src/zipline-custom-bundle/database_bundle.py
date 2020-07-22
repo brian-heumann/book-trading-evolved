@@ -6,7 +6,34 @@ from tqdm import tqdm  # Used for progress bar
 engine = create_engine(
     "postgresql+pg8000://quotes:clue0QS-train@raspberrypi/quotes")
 
-universe = [
+etfs = [
+    {'isin': 'IE00BKM4GZ66',
+        'symbol': 'IS3N.F',
+        'name': 'iShares Core MSCI Emerging Markets IMI UCITS',
+        'class': 'etf'},
+
+    {'isin': 'IE00BP3QZB59',
+        'symbol': 'IS3S.DE',
+        'name': 'iShares MSCI World Value Factor UCITS',
+        'class': 'etf'},
+
+    {'isin': 'IE00BF4RFH31',
+        'symbol': 'IUSN.F',
+        'name': 'iShares MSCI World Small Cap UCITS USD Acc',
+        'class': 'etf'},
+
+    {'isin': 'IE00BL25JP72',
+        'symbol': 'XDEM.DE',
+        'name': 'db x-trackers MSCI World Mom Factor DR 1C',
+        'class': 'etf'},
+
+    {'isin': 'IE00BL25JL35',
+        'symbol': 'XDEQ.DE',
+        'name': 'db x-trackers MSCI World Quality Factor DR 1C',
+        'class': 'etf'}
+]
+
+stocks = [
     {'isin': 'CA0585861085', 'symbol': 'PO0.F', 'name': "Ballard Power"},
     {'isin': 'GB00B0130H42', 'symbol': 'IJ8.F', 'name': "ITM Power"},
     {'isin': 'NO0010081235', 'symbol': 'D7G.F', 'name': "Nel"},
@@ -17,10 +44,10 @@ universe = [
     {'isin': 'IE00BZ12WP82', 'symbol': 'LIN.F', 'name': "Linde"},
     {'isin': 'US2310211063', 'symbol': 'CUM.F', 'name': 'Cummins'},
     {'isin': 'FR0011742329', 'symbol': 'M6P.F', 'name': 'McPhy Energy S.A.'},
-    #{'isin': 'US6541101050', 'symbol': '8NI.F', 'name': 'Nikola Corporation'},
     {'isin': 'DE000A0HL8N9', 'symbol': '2GB.DE', 'name': '2G Energy'}
 ]
 
+universe = stocks  # TBD: Analyze why etfs don't work
 
 """
 The ingest function needs to have this exact signature,
@@ -153,4 +180,5 @@ def process_stocks(universe, sessions, metadata, divs):
             # Append this stock's dividends to the list of all dividends
             divs = divs.append(div)
 
+        tqdm.write(symbol)
         yield sid, df
